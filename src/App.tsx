@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.scss';
+import { Clock } from './components/Clock';
 function getRandomName(): string {
   const value = Date.now().toString().slice(-4);
 
@@ -87,17 +88,7 @@ export class App extends React.Component {
       <div className="App">
         <h1>React clock</h1>
 
-        {clockVisibility && (
-          <div className="Clock">
-            <strong className="Clock__name">{timerId}</strong>
-
-            {' time is '}
-
-            <span className="Clock__time">
-              {time.toUTCString().slice(-12, -4)}
-            </span>
-          </div>
-        )}
+        {clockVisibility && <Clock time={time} timerId={timerId} />}
       </div>
     );
   }
