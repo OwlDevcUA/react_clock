@@ -24,6 +24,8 @@ export class App extends React.Component {
 
   timerIdIntervalId?: number;
 
+  isRunning = false;
+
   clickHandler = () => this.handleClick();
 
   contextMenuHandler = (event: MouseEvent) => {
@@ -33,33 +35,46 @@ export class App extends React.Component {
   };
 
   handleClick() {
+    if (this.isRunning) {
+      return;
+    }
+
+    this.isRunning = true;
+
     if (this.timeIntervalId) {
       clearInterval(this.timeIntervalId);
+      this.timeIntervalId = undefined;
     }
 
     if (this.timerIdIntervalId) {
       clearInterval(this.timerIdIntervalId);
+      this.timerIdIntervalId = undefined;
     }
 
-    this.setState({ clockVisibility: true });
+    let now = new Date();
+    let newName = getRandomName();
+
+    this.setState({
+      clockVisibility: true,
+      time: now,
+      timerId: newName,
+    });
+
     this.timeIntervalId = window.setInterval(() => {
-      const now = new Date();
+      now = new Date();
 
       this.setState({ time: now });
-      // eslint-disable-next-line no-console
-      console.log(now.toUTCString().slice(-12, -4));
     }, 1000);
 
     this.timerIdIntervalId = window.setInterval(() => {
-      const newName = getRandomName();
+      newName = getRandomName();
 
       this.setState({ timerId: newName });
-      // eslint-disable-next-line no-console
-      console.warn(newName);
     }, 3300);
   }
 
   handleContextMenu() {
+    this.isRunning = false;
     this.setState({ clockVisibility: false });
     window.clearInterval(this.timeIntervalId);
     window.clearInterval(this.timerIdIntervalId);
@@ -74,6 +89,20 @@ export class App extends React.Component {
 
     window.addEventListener('click', this.clickHandler);
     window.addEventListener('contextmenu', this.contextMenuHandler);
+  }
+
+  componentDidUpdate(_prevProps: {}, prevState: State) {
+    if (prevState.time !== this.state.time) {
+      // eslint-disable-next-line no-console
+      console.log(this.state.time.toUTCString().slice(-12, -4));
+    }
+
+    if (prevState.timerId !== this.state.timerId) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `Renamed from ${prevState.timerId} to ${this.state.timerId}`,
+      );
+    }
   }
 
   componentWillUnmount() {
