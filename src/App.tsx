@@ -1,37 +1,104 @@
 import React from 'react';
 import './App.scss';
-
 function getRandomName(): string {
   const value = Date.now().toString().slice(-4);
 
   return `Clock-${value}`;
 }
 
-export const App: React.FC = () => {
-  const today = new Date();
-  let clockName = 'Clock-0';
-
-  // This code starts a timer
-  const timerId = window.setInterval(() => {
-    clockName = getRandomName();
-  }, 3300);
-
-  // this code stops the timer
-  window.clearInterval(timerId);
-
-  return (
-    <div className="App">
-      <h1>React clock</h1>
-
-      <div className="Clock">
-        <strong className="Clock__name">{clockName}</strong>
-
-        {' time is '}
-
-        <span className="Clock__time">
-          {today.toUTCString().slice(-12, -4)}
-        </span>
-      </div>
-    </div>
-  );
+type State = {
+  clockVisibility: boolean;
+  time: Date;
+  timerId: string;
 };
+
+export class App extends React.Component {
+  state: State = {
+    clockVisibility: true,
+    time: new Date(),
+    timerId: 'Clock-0',
+  };
+
+  timeIntervalId?: number;
+
+  timerIdIntervalId?: number;
+
+  clickHandler = () => this.handleClick();
+
+  contextMenuHandler = (event: MouseEvent) => {
+    event.preventDefault();
+
+    this.handleContextMenu();
+  };
+
+  handleClick() {
+    if (this.timeIntervalId) {
+      clearInterval(this.timeIntervalId);
+    }
+
+    if (this.timerIdIntervalId) {
+      clearInterval(this.timerIdIntervalId);
+    }
+
+    this.setState({ clockVisibility: true });
+    this.timeIntervalId = window.setInterval(() => {
+      const now = new Date();
+
+      this.setState({ time: now });
+      // eslint-disable-next-line no-console
+      console.log(now.toUTCString().slice(-12, -4));
+    }, 1000);
+
+    this.timerIdIntervalId = window.setInterval(() => {
+      const newName = getRandomName();
+
+      this.setState({ timerId: newName });
+      // eslint-disable-next-line no-console
+      console.warn(newName);
+    }, 3300);
+  }
+
+  handleContextMenu() {
+    this.setState({ clockVisibility: false });
+    window.clearInterval(this.timeIntervalId);
+    window.clearInterval(this.timerIdIntervalId);
+    this.timeIntervalId = undefined;
+    this.timerIdIntervalId = undefined;
+  }
+
+  componentDidMount() {
+    if (this.state.clockVisibility) {
+      this.handleClick();
+    }
+
+    window.addEventListener('click', this.clickHandler);
+    window.addEventListener('contextmenu', this.contextMenuHandler);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('click', this.clickHandler);
+    window.removeEventListener('contextmenu', this.contextMenuHandler);
+  }
+
+  render() {
+    const { clockVisibility, time, timerId } = this.state;
+
+    return (
+      <div className="App">
+        <h1>React clock</h1>
+
+        {clockVisibility && (
+          <div className="Clock">
+            <strong className="Clock__name">{timerId}</strong>
+
+            {' time is '}
+
+            <span className="Clock__time">
+              {time.toUTCString().slice(-12, -4)}
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+}
